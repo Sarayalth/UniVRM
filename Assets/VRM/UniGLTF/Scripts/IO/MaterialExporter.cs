@@ -218,8 +218,11 @@ namespace UniGLTF
                 case "UniGLTF/UniUnlit":
                     return Export_UniUnlit(m);
 
-                default:
+                case "Standard/":
                     return Export_Standard(m);
+
+                default:
+                    return Export_Custom(m);
             }
         }
 
@@ -303,6 +306,33 @@ namespace UniGLTF
                 case "TransparentCutout":
                     material.alphaMode = glTFBlendMode.MASK.ToString();
                     material.alphaCutoff = m.GetFloat("_Cutoff");
+                    break;
+
+                default:
+                    material.alphaMode = glTFBlendMode.OPAQUE.ToString();
+                    break;
+            }
+
+            return material;
+        }
+
+
+        static glTFMaterial Export_Custom(Material m)
+        {
+            var material = new glTFMaterial
+            {
+                pbrMetallicRoughness = new glTFPbrMetallicRoughness(),
+            };
+
+            switch (m.GetTag("RenderType", true))
+            {
+                case "Transparent":
+                    material.alphaMode = glTFBlendMode.BLEND.ToString();
+                    break;
+
+                case "TransparentCutout":
+                    material.alphaMode = glTFBlendMode.MASK.ToString();
+                    // material.alphaCutoff = m.GetFloat("_Cutoff");
                     break;
 
                 default:

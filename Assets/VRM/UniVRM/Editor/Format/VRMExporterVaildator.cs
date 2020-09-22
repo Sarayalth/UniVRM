@@ -338,7 +338,7 @@ namespace VRM
             }
 
             var materials = renderers.SelectMany(x => x.sharedMaterials).Where(x => x != null).Distinct();
-            foreach (var material in materials)
+            /*foreach (var material in materials)
             {
                 if (material == null)
                 {
@@ -364,7 +364,7 @@ namespace VRM
                 }
 
                 yield return Validation.Warning($"Material: {material.name}. Unknown Shader: \"{material.shader.name}\" is used. {Msg(VRMExporterWizardMessages.UNKNOWN_SHADER)}");
-            }
+            }*/
 
             foreach (var material in materials)
             {

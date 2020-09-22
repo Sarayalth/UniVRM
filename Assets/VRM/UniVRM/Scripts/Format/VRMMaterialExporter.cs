@@ -138,11 +138,11 @@ namespace VRM
                 renderQueue = m.renderQueue,
             };
 
-            if (!VRMExtensionShaders.Contains(m.shader.name))
+            /*if (!VRMExtensionShaders.Contains(m.shader.name))
             {
                 material.shader = glTF_VRM_Material.VRM_USE_GLTFSHADER;
                 return material;
-            }
+            }*/
 
             var prop = PreShaderPropExporter.GetPropsForSupportedShader(m.shader.name);
             if (prop == null)
