@@ -2,8 +2,8 @@
 using UnityEditor.AssetImporters;
 #else
 using UnityEditor.Experimental.AssetImporters;
-using UnityEngine;
 #endif
+using UnityEngine;
 
 
 namespace UniVRM10
