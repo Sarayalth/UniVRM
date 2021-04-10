@@ -3,7 +3,7 @@ using System.IO;
 
 public class CreateAssetBundles
 {
-    [MenuItem("VRM/Build Shader Packs")]
+    [MenuItem("VRMCustomShaders/Build Shader Packs")]
     static void BuildAllAssetBundles()
     {
         string shaderPacksDirectory = "Assets/ShaderPacks";
