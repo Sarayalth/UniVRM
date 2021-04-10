@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using UniGLTF;
 using UnityEngine;
 using UnityEngine.UI;
 using VRM;
@@ -28,7 +29,7 @@ namespace VRM.Samples
 
         #region Load
 
-        void OnLoadClicked()
+        async void OnLoadClicked()
         {
 #if UNITY_STANDALONE_WIN
             var path = FileDialogForWindows.FileDialog("open VRM", ".vrm");
@@ -45,18 +46,22 @@ namespace VRM.Samples
             var bytes = File.ReadAllBytes(path);
             // なんらかの方法でByte列を得た
 
-            var context = new VRMImporterContext();
-
             // GLB形式でJSONを取得しParseします
-            context.ParseGlb(bytes);
+            var parser = new GltfParser();
+            parser.ParseGlb(bytes);
 
+            using (var context = new VRMImporterContext(parser))
+            {
 
-            // metaを取得(todo: thumbnailテクスチャのロード)
-            var meta = context.ReadMeta();
-            Debug.LogFormat("meta: title:{0}", meta.Title);
+                // metaを取得(todo: thumbnailテクスチャのロード)
+                var meta = await context.ReadMetaAsync();
+                Debug.LogFormat("meta: title:{0}", meta.Title);
 
-            // ParseしたJSONをシーンオブジェクトに変換していく
-            context.LoadAsync(() => OnLoaded(context));
+                // ParseしたJSONをシーンオブジェクトに変換していく
+                await context.LoadAsync();
+
+                OnLoaded(context);
+            }
         }
 
         void OnLoaded(VRMImporterContext context)
@@ -90,7 +95,7 @@ namespace VRM.Samples
                 return;
             }
 
-            var vrm = VRMExporter.Export(m_model);
+            var vrm = VRMExporter.Export(UniGLTF.MeshExportSettings.Default, m_model, _ => false);
             var bytes = vrm.ToGlbBytes();
             File.WriteAllBytes(path, bytes);
             Debug.LogFormat("export to {0}", path);

@@ -1,0 +1,24 @@
+{
+    "name": "VRM10.Editor",
+    "references": [
+        "VRM10",
+        "VrmLib",
+        "MeshUtility",
+        "MeshUtility.Editor",
+        "UniGLTF.Editor",
+        "UniGLTF",
+        "VRMShaders.GLTF.IO.Runtime",
+        "VRMShaders.GLTF.IO.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

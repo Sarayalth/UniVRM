@@ -1,0 +1,20 @@
+{
+    "name": "VRM10",
+    "references": [
+        "VrmLib",
+        "MToon",
+        "MeshUtility",
+        "MeshUtility.Editor",
+        "UniGLTF",
+        "VRMShaders.GLTF.IO.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

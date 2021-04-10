@@ -3,9 +3,12 @@
     "references": [
         "VRM",
         "VRM.Samples",
-        "UniVRM.Editor.Tests",
-        "UniJSON",
-        "MeshUtility"
+        "MeshUtility",
+        "UniGLTF",
+        "UniVRM.Editor",
+        "VRM.Tests",
+        "VRMShaders.GLTF.IO.Runtime",
+        "VRMShaders.GLTF.IO.Editor"
     ],
     "optionalUnityReferences": [
         "TestAssemblies"
@@ -15,8 +18,12 @@
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": []
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ]
 }

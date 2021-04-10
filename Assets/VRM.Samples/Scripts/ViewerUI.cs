@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+using UniGLTF;
 using UniHumanoid;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,6 +10,8 @@ using UnityEngine.UI;
 
 namespace VRM.Samples
 {
+
+
     public class ViewerUI : MonoBehaviour
     {
         #region UI
@@ -83,9 +87,9 @@ namespace VRM.Samples
                 m_textDistributionOther.text = "";
             }
 
-            public void UpdateMeta(VRMImporterContext context)
+            public async Task UpdateMetaAsync(VRMImporterContext context)
             {
-                var meta = context.ReadMeta(true);
+                var meta = await context.ReadMetaAsync(default(TaskCaller), true);
 
                 m_textModelTitle.text = meta.Title;
                 m_textModelVersion.text = meta.Version;
@@ -105,6 +109,7 @@ namespace VRM.Samples
                 m_thumbnail.texture = meta.Thumbnail;
             }
         }
+
         [SerializeField]
         TextFields m_texts = default;
 
@@ -211,7 +216,7 @@ namespace VRM.Samples
             string[] cmds = System.Environment.GetCommandLineArgs();
             if (cmds.Length > 1)
             {
-                LoadModel(cmds[1]);
+                LoadModelAsync(cmds[1]);
             }
 
             m_texts.Start();
@@ -264,7 +269,7 @@ namespace VRM.Samples
         void OnOpenClicked()
         {
 #if UNITY_STANDALONE_WIN
-            var path = FileDialogForWindows.FileDialog("open VRM", "vrm", "glb", "bvh");
+            var path = FileDialogForWindows.FileDialog("open VRM", "vrm", "glb", "bvh", "gltf", "zip");
 #elif UNITY_EDITOR
             var path = UnityEditor.EditorUtility.OpenFilePanel("Open VRM", "", "vrm");
 #else
@@ -281,7 +286,8 @@ namespace VRM.Samples
                 case ".gltf":
                 case ".glb":
                 case ".vrm":
-                    LoadModel(path);
+                case ".zip":
+                    LoadModelAsync(path);
                     break;
 
                 case ".bvh":
@@ -290,7 +296,7 @@ namespace VRM.Samples
             }
         }
 
-        void LoadModel(string path)
+        async void LoadModelAsync(string path)
         {
             if (!File.Exists(path))
             {
@@ -303,27 +309,49 @@ namespace VRM.Samples
             {
                 case ".vrm":
                     {
-                        var context = new VRMImporterContext();
                         var file = File.ReadAllBytes(path);
-                        context.ParseGlb(file);
-                        m_texts.UpdateMeta(context);
-                        context.Load();
-                        context.ShowMeshes();
-                        context.EnableUpdateWhenOffscreen();
-                        context.ShowMeshes();
-                        SetModel(context.Root);
+
+                        var parser = new GltfParser();
+                        parser.ParseGlb(file);
+
+                        using (var context = new VRMImporterContext(parser))
+                        {
+                            await m_texts.UpdateMetaAsync(context);
+                            await context.LoadAsync();
+                            context.EnableUpdateWhenOffscreen();
+                            context.ShowMeshes();
+                            context.DisposeOnGameObjectDestroyed();
+                            SetModel(context.Root);
+                        }
                         break;
                     }
 
                 case ".glb":
                     {
-                        var context = new UniGLTF.ImporterContext();
                         var file = File.ReadAllBytes(path);
-                        context.ParseGlb(file);
+                        var parser = new GltfParser();
+                        parser.ParseGlb(file);
+
+                        var context = new UniGLTF.ImporterContext(parser);
                         context.Load();
-                        context.ShowMeshes();
                         context.EnableUpdateWhenOffscreen();
                         context.ShowMeshes();
+                        context.DisposeOnGameObjectDestroyed();
+                        SetModel(context.Root);
+                        break;
+                    }
+
+                case ".gltf":
+                case ".zip":
+                    {
+                        var parser = new GltfParser();
+                        parser.ParsePath(path);
+
+                        var context = new UniGLTF.ImporterContext(parser);
+                        context.Load();
+                        context.EnableUpdateWhenOffscreen();
+                        context.ShowMeshes();
+                        context.DisposeOnGameObjectDestroyed();
                         SetModel(context.Root);
                         break;
                     }

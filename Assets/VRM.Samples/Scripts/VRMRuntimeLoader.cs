@@ -1,7 +1,6 @@
 ﻿#pragma warning disable 0414
-using System;
 using System.IO;
-using System.Runtime.InteropServices;
+using UniGLTF;
 using UnityEngine;
 
 
@@ -70,7 +69,7 @@ namespace VRM.Samples
             m_canvas.LoadBVHButton.onClick.AddListener(LoadBVHClicked);
         }
 
-        void LoadVRMClicked()
+        async void LoadVRMClicked()
         {
 #if UNITY_STANDALONE_WIN
             var path = FileDialogForWindows.FileDialog("open VRM", ".vrm");
@@ -87,25 +86,26 @@ namespace VRM.Samples
             var bytes = File.ReadAllBytes(path);
             // なんらかの方法でByte列を得た
 
-            var context = new VRMImporterContext();
-
             // GLB形式でJSONを取得しParseします
-            context.ParseGlb(bytes);
+            var parser = new GltfParser();
+            parser.Parse(path, bytes);
 
-
-            // metaを取得(todo: thumbnailテクスチャのロード)
-            var meta = context.ReadMeta();
-            Debug.LogFormat("meta: title:{0}", meta.Title);
-
-
-            // ParseしたJSONをシーンオブジェクトに変換していく
-            if (m_loadAsync)
+            using (var context = new VRMImporterContext(parser))
             {
-                LoadAsync(context);
-            }
-            else
-            {
-                context.Load();
+                // metaを取得(todo: thumbnailテクスチャのロード)
+                var meta = await context.ReadMetaAsync();
+                Debug.LogFormat("meta: title:{0}", meta.Title);
+
+                // ParseしたJSONをシーンオブジェクトに変換していく
+                if (m_loadAsync)
+                {
+                    await context.LoadAsync();
+                }
+                else
+                {
+                    context.Load();
+                }
+
                 OnLoaded(context);
             }
         }
@@ -113,7 +113,7 @@ namespace VRM.Samples
         /// <summary>
         /// メタが不要な場合のローダー
         /// </summary>
-        void LoadVRMClicked_without_meta()
+        async void LoadVRMClicked_without_meta()
         {
 #if UNITY_STANDALONE_WIN
             var path = FileDialogForWindows.FileDialog("open VRM", ".vrm");
@@ -127,56 +127,23 @@ namespace VRM.Samples
                 return;
             }
 
-#if true
             var bytes = File.ReadAllBytes(path);
             // なんらかの方法でByte列を得た
 
-            var context = new VRMImporterContext();
-
             // GLB形式でJSONを取得しParseします
-            context.ParseGlb(bytes);
+            var parser = new GltfParser();
+            parser.ParseGlb(bytes);
 
+            var context = new VRMImporterContext(parser);
             if (m_loadAsync)
             {
-                // ローカルファイルシステムからロードします
-                LoadAsync(context);
+                await context.LoadAsync();
             }
             else
             {
                 context.Load();
-                OnLoaded(context);
             }
-
-#else
-            // ParseしたJSONをシーンオブジェクトに変換していく
-            if (m_loadAsync)
-            {
-                // ローカルファイルシステムからロードします
-                VRMImporter.LoadVrmAsync(path, OnLoaded);
-            }
-            else
-            {
-                var root=VRMImporter.LoadFromPath(path);
-                OnLoaded(root);
-            }
-#endif
-        }
-
-
-        void LoadAsync(VRMImporterContext context)
-        {
-#if true
-            var now = Time.time;
-            context.LoadAsync(() =>
-            {
-                var delta = Time.time - now;
-                Debug.LogFormat("LoadAsync {0:0.0} seconds", delta);
-                OnLoaded(context);
-            });
-#else
-            // ローカルファイルシステムからロードします
-            VRMImporter.LoadVrmAsync(path, OnLoaded);
-#endif
+            OnLoaded(context);
         }
 
         void LoadBVHClicked()
@@ -201,10 +168,12 @@ namespace VRM.Samples
         void OnLoaded(VRMImporterContext context)
         {
             var root = context.Root;
+
             root.transform.SetParent(transform, false);
 
             //メッシュを表示します
             context.ShowMeshes();
+            context.DisposeOnGameObjectDestroyed();
 
             // add motion
             var humanPoseTransfer = root.AddComponent<UniHumanoid.HumanPoseTransfer>();
